@@ -166,11 +166,25 @@ public class BlockBreakEventListener implements Listener {
 
         // Deal with Containers
         if (block.getState() instanceof Container) {
-
-            if (block.getState() instanceof ShulkerBox) {
-                return;
+            Container container = (Container) block.getState();
+        
+            // Retrieve and add all items in the container to player s inventory
+            for (ItemStack items : container.getInventory().getContents()) {
+                if (items != null) {
+                    HashMap<Integer, ItemStack> leftOver = player.getInventory().addItem(items);
+                    if (!leftOver.isEmpty()) {
+                        // Drop remaining items
+                        for (ItemStack item : leftOver.values()) {
+                            player.getWorld().dropItemNaturally(loc, item);
+                        }
+                    }
+                }
             }
-
+        
+            // Clear the container inventory after processing items
+            container.getInventory().clear();
+            return;
+            
             // Upgradable Hoppers Patch
             if (block.getState() instanceof Hopper && AutoPickup.usingUpgradableHoppers) {
                 NamespacedKey upgHoppers = new NamespacedKey(PLUGIN.getServer().getPluginManager().getPlugin("UpgradeableHoppers"), "o");
@@ -179,6 +193,7 @@ public class BlockBreakEventListener implements Listener {
                     return;
                 }
             }
+           }
 
             // Peaceful Farms - PFHoppers Patch
             /*if (block.getState() instanceof Hopper && AutoPickup.usingPFHoppers) {
